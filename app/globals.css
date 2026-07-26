@@ -1,0 +1,224 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #ffffff;
+  --color-surface: #f7f8fa;
+  --color-ink: #050505;
+  --color-ink-muted: #65676b;
+  --color-brand: #1877f2;
+  --color-brand-dark: #166fe5;
+  --color-brand-soft: #e7f0fe;
+  --color-positive: #31a24c;
+  --color-positive-soft: #e6f4ea;
+  --color-warning: #f7b928;
+  --color-warning-soft: #fdf3d7;
+  --color-line: #e4e6eb;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Helvetica, Arial, sans-serif;
+}
+
+/* Discord-like dark theme: deep dark-blue surfaces, blue buttons, white text. */
+:root[data-theme="dark"] {
+  --color-background: #1a1d2b; /* page */
+  --color-surface: #232741; /* subtle fills, pill tracks, hovers */
+  --color-surface-raised: #272c48; /* cards, menus, popovers (was bg-white) */
+  --color-ink: #ffffff;
+  --color-ink-muted: #a7b0cc;
+  --color-brand: #3b82f6;
+  --color-brand-dark: #2f6fe0;
+  --color-brand-soft: #2b3556;
+  --color-positive: #3ba55d;
+  --color-positive-soft: #21332a;
+  --color-warning: #f0b232;
+  --color-warning-soft: #3a3320;
+  --color-line: #343b5c;
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--color-brand-soft);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* ── Landing page ───────────────────────────────────────────────────────
+   The marketing page borrows the Studio canvas as its visual language: dot
+   grid, node cards, flowing edges. These are the shared primitives. */
+
+.canvas-grid {
+  background-image: radial-gradient(
+    circle,
+    var(--grid-dot, #d5d8dd) 1px,
+    transparent 1px
+  );
+  background-size: 18px 18px;
+}
+
+.canvas-grid-dark {
+  --grid-dot: rgb(255 255 255 / 0.12);
+}
+
+/* Scroll-in reveal — see components/landing/Reveal.tsx */
+.reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 0.55s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* React Flow-style travelling dashes on connector edges */
+@keyframes edge-dash {
+  to {
+    stroke-dashoffset: -24;
+  }
+}
+
+.edge-flow {
+  stroke-dasharray: 5 7;
+  animation: edge-dash 1.2s linear infinite;
+}
+
+/* Hero: source ad fanning into variations — see HeroCanvasAnim.tsx.
+   Each variation shares one long cycle, offset by animation-delay so they
+   cascade in and out like they're being dragged off the source, forever. */
+@keyframes hero-fan {
+  0% {
+    opacity: 0;
+    transform: translateY(-16px) scale(0.94);
+  }
+  9% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  82% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  93%,
+  100% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+}
+
+.hero-node {
+  animation: hero-fan 7s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+@keyframes hero-source-pulse {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.hero-source {
+  animation: hero-source-pulse 4.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .edge-flow {
+    animation: none;
+  }
+
+  .hero-node,
+  .hero-source {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Remap the literal utility colors that don't ride on theme tokens so the
+   Discord-like dark theme covers cards, menus, and error/destructive states. */
+:root[data-theme="dark"] .bg-white {
+  background-color: var(--color-surface-raised);
+}
+:root[data-theme="dark"] .hover\:bg-white:hover {
+  background-color: var(--color-surface);
+}
+:root[data-theme="dark"] .text-red-600 {
+  color: #ff7b7b;
+}
+:root[data-theme="dark"] .bg-red-50,
+:root[data-theme="dark"] .bg-red-100 {
+  background-color: #3a2436;
+}
+:root[data-theme="dark"] .hover\:bg-red-50:hover {
+  background-color: #3a2436;
+}
+:root[data-theme="dark"] .border-red-100,
+:root[data-theme="dark"] .border-red-200 {
+  border-color: #5b3550;
+}
+
+/* React Flow chrome, restyled to the Virtuozo palette */
+.react-flow__controls {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--color-line);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07);
+}
+
+.react-flow__controls-button {
+  background: var(--color-background);
+  border-bottom: 1px solid var(--color-line);
+  color: var(--color-ink);
+  width: 28px;
+  height: 28px;
+}
+
+.react-flow__controls-button:hover {
+  background: var(--color-surface);
+}
+
+.react-flow__controls-button svg {
+  fill: var(--color-ink-muted);
+}
+
+.react-flow__minimap {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--color-line);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07);
+}
+
+.react-flow__handle {
+  cursor: crosshair;
+}
+
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke-width: 3;
+}
+
+.react-flow__attribution {
+  background: transparent;
+  color: var(--color-ink-muted);
+}
