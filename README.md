@@ -9,7 +9,7 @@
   &nbsp;<b>Built by <a href="https://powerbrix.ai">PowerBrix</a></b>
 </p>
 
-### The open-source Meta ads manager with an infinite AI ad studio.
+### The source-available Meta ads manager with an infinite AI ad studio.
 
 **Targeting isn't the problem. Your ads are.**
 Andromeda already runs the targeting, bidding and delivery — you can't out-bid or out-target it, and it doesn't matter that you can't. The only lever left is the creative. Virtuozo is how you pull that lever: **generate as many ads as you need, feed them to Andromeda, and let it surface the winner.**
@@ -128,7 +128,9 @@ Virtuozo needs no `.env` file — but you can override a couple of install-wide 
 
 ## License
 
-[MIT](LICENSE) — do what you like with it.
+Source-available under the [Virtuozo Source-Available License](LICENSE). You're free to **use, run, and modify** Virtuozo for your **own personal use** and your **organization's internal business operations** — run your own ads and your team's ads, all you like.
+
+You may **not** redistribute, resell, sublicense, or use it (or anything derived from it) to build or operate a product or service for third parties, without a separate commercial license. See [LICENSE](LICENSE) for the full terms.
 
 <br />
 
