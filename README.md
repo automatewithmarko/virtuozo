@@ -4,6 +4,11 @@
 
 # Virtuozo
 
+<p>
+  <img src="screenshots/powerbrix-logo.png" alt="PowerBrix" height="18" align="top" />
+  &nbsp;<b>Built by <a href="https://powerbrix.ai">PowerBrix</a></b>
+</p>
+
 ### The open-source Meta ads manager with an infinite AI ad studio.
 
 **Targeting isn't the problem. Your ads are.**
@@ -47,6 +52,21 @@ Variations are ads too. Pull from them again, and again. It never bottoms out.
 ### 📊 Ads Manager — your campaigns, minus the spreadsheet
 
 Real Meta data, clean cards. See spend, impressions, clicks, CTR and CPC at a glance, toggle campaigns and ads on and off, rebalance budgets, and publish new campaigns straight from Studio. **Everything you publish starts paused — nothing spends until you say go.**
+
+<img src="screenshots/ads-manager.png" alt="Virtuozo dashboard" width="100%" />
+
+**Launching a campaign is four quick steps** — no ad sets, no spreadsheets:
+
+<table>
+  <tr>
+    <td width="50%" valign="top"><b>1 · Pick a goal</b><br/><img src="screenshots/campaign-1-goal.png" alt="Choose a goal" /></td>
+    <td width="50%" valign="top"><b>2 · Choose your audience</b><br/><img src="screenshots/campaign-2-audience.png" alt="Choose an audience" /></td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top"><b>3 · Build the ads</b><br/><img src="screenshots/campaign-3-ads.png" alt="Create your ads" /></td>
+    <td width="50%" valign="top"><b>4 · Review &amp; launch</b><br/><img src="screenshots/campaign-4-review.png" alt="Review and launch" /></td>
+  </tr>
+</table>
 
 <br />
 
@@ -114,6 +134,7 @@ Virtuozo needs no `.env` file — but you can override a couple of install-wide 
 
 <div align="center">
 
-Built by [PowerBrix](https://powerbrix.ai).
+<img src="screenshots/powerbrix-logo.png" alt="PowerBrix" height="20" align="top" />
+&nbsp;<b>Built by <a href="https://powerbrix.ai">PowerBrix</a></b>
 
 </div>
