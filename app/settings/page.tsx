@@ -5,11 +5,11 @@ import Button from "@/components/ui/Button";
 import {
   activeConnection,
   getConnections,
-  getOpenAiKey,
+  getPowerBrixKey,
   notifyCredsChanged,
   saveConnections,
   setActiveConnectionId,
-  setOpenAiKey,
+  setPowerBrixKey,
   type Connection,
 } from "@/lib/browser-store";
 import { BookOpen, Check, ChevronDown, KeyRound, Loader2, Plus, Trash2 } from "lucide-react";
@@ -252,18 +252,18 @@ export default function SettingsPage() {
   const [tab, setTab] = useState<Tab>("connections");
   const [connections, setConnections] = useState<Connection[]>([]);
   const [activeId, setActiveId] = useState<string | undefined>(undefined);
-  const [openaiKey, setOpenaiKey] = useState("");
+  const [powerbrixKey, setPowerbrixKey] = useState("");
   const [savedKey, setSavedKey] = useState("");
-  const [savingOpenai, setSavingOpenai] = useState(false);
-  const [savedOpenai, setSavedOpenai] = useState(false);
-  const [openaiError, setOpenaiError] = useState<string | null>(null);
+  const [savingPowerbrix, setSavingPowerbrix] = useState(false);
+  const [savedPowerbrix, setSavedPowerbrix] = useState(false);
+  const [powerbrixError, setPowerbrixError] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
 
   const reload = useCallback(() => {
     setConnections(getConnections());
     setActiveId(activeConnection()?.id);
-    const key = getOpenAiKey();
-    setOpenaiKey(key);
+    const key = getPowerBrixKey();
+    setPowerbrixKey(key);
     setSavedKey(key);
     setReady(true);
   }, []);
@@ -357,53 +357,63 @@ export default function SettingsPage() {
             <section className="rounded-xl border border-line bg-white p-6">
               <div className="mb-5 flex items-center gap-4">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/brand/openai.svg" alt="OpenAI" className="size-8 shrink-0" />
+                <img src="/powerbrix/PowerBrixLogo.png" alt="PowerBrix" className="h-8 w-auto shrink-0" />
                 <div>
-                  <h2 className="font-bold">OpenAI API key</h2>
+                  <h2 className="font-bold">PowerBrix API key</h2>
                   <p className="text-sm text-ink-muted">
-                    Powers Studio&apos;s image and copy generation. Stored only in this browser.
+                    Powers Studio&apos;s image and copy generation through the PowerBrix router. Stored only in this browser.
                   </p>
                 </div>
+                <a
+                  href="https://api.powerbrix.ai"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="ml-auto flex shrink-0 items-center gap-2 rounded-lg bg-black px-3.5 py-2 text-xs font-bold text-white transition-colors hover:bg-black/85"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/powerbrix/PowerBrixLogo.png" alt="" className="size-4 shrink-0" />
+                  Get API Key
+                </a>
               </div>
               <div className="space-y-3">
                 <textarea
                   rows={2}
-                  value={openaiKey}
-                  onChange={(e) => setOpenaiKey(e.target.value)}
-                  placeholder="sk-…"
+                  value={powerbrixKey}
+                  onChange={(e) => setPowerbrixKey(e.target.value)}
+                  placeholder="mnt_…"
                   spellCheck={false}
                   className={`${inputCls} resize-none break-all font-mono text-xs`}
                 />
-                {openaiError && <p className="text-xs font-semibold text-red-600">{openaiError}</p>}
+                {powerbrixError && <p className="text-xs font-semibold text-red-600">{powerbrixError}</p>}
                 <div className="flex items-center gap-3">
                   <Button
-                    disabled={savingOpenai || !openaiKey.trim() || openaiKey === savedKey}
+                    disabled={savingPowerbrix || !powerbrixKey.trim() || powerbrixKey === savedKey}
                     onClick={async () => {
-                      setSavingOpenai(true);
-                      setSavedOpenai(false);
-                      setOpenaiError(null);
+                      setSavingPowerbrix(true);
+                      setSavedPowerbrix(false);
+                      setPowerbrixError(null);
                       try {
-                        await validate({ action: "validate_openai", openai_key: openaiKey });
-                        setOpenAiKey(openaiKey.trim());
-                        setSavedKey(openaiKey.trim());
+                        await validate({ action: "validate_powerbrix", powerbrix_key: powerbrixKey });
+                        setPowerBrixKey(powerbrixKey.trim());
+                        setSavedKey(powerbrixKey.trim());
                         notifyCredsChanged();
-                        setSavedOpenai(true);
+                        setSavedPowerbrix(true);
                       } catch (err) {
-                        setOpenaiError(err instanceof Error ? err.message : "Failed");
+                        setPowerbrixError(err instanceof Error ? err.message : "Failed");
                       } finally {
-                        setSavingOpenai(false);
+                        setSavingPowerbrix(false);
                       }
                     }}
                   >
-                    {savingOpenai ? (
+                    {savingPowerbrix ? (
                       <>
                         <Loader2 className="size-4 animate-spin" /> Verifying…
                       </>
                     ) : (
-                      "Save OpenAI key"
+                      "Save PowerBrix key"
                     )}
                   </Button>
-                  {savedOpenai && (
+                  {savedPowerbrix && (
                     <span className="flex items-center gap-1 text-sm font-semibold text-positive">
                       <Check className="size-4" /> Saved
                     </span>

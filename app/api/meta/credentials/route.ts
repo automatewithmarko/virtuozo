@@ -2,12 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 
 /**
  * Stateless credential validation for the open-source build. There is no
- * database — the browser keeps the Meta connections and OpenAI key. This route
- * only checks a credential against the provider (and, for Meta, resolves the
- * ad-account name) before the browser saves it.
+ * database — the browser keeps the Meta connections and PowerBrix key. This
+ * route only checks a credential against the provider (and, for Meta, resolves
+ * the ad-account name) before the browser saves it.
  */
 
 const VERSION = process.env.META_API_VERSION || "v23.0";
+
+// PowerBrix Super API — OpenAI-compatible router that Studio generation runs
+// through. Keys are validated against its /models endpoint.
+const POWERBRIX_BASE = process.env.POWERBRIX_BASE_URL || "https://api.powerbrix.ai";
 
 async function fetchAccountName(
   token: string,
@@ -40,15 +44,15 @@ async function validateMetaToken(token: string): Promise<string | null> {
   return null;
 }
 
-async function validateOpenAiKey(key: string): Promise<string | null> {
-  if (!key.startsWith("sk-")) return "OpenAI keys start with sk-.";
-  const res = await fetch("https://api.openai.com/v1/models?limit=1", {
+async function validatePowerBrixKey(key: string): Promise<string | null> {
+  if (!key.startsWith("mnt_")) return "PowerBrix keys start with mnt_.";
+  const res = await fetch(`${POWERBRIX_BASE}/api/v1/models`, {
     headers: { Authorization: `Bearer ${key}` },
     cache: "no-store",
   });
   if (!res.ok) {
     const json = await res.json().catch(() => ({}));
-    return json.error?.message ?? "OpenAI rejected this key.";
+    return json.error?.message ?? "PowerBrix rejected this key.";
   }
   return null;
 }
@@ -60,7 +64,7 @@ export async function POST(req: NextRequest) {
     action?: string;
     token?: string;
     ad_account_id?: string;
-    openai_key?: string;
+    powerbrix_key?: string;
   };
 
   try {
@@ -75,8 +79,8 @@ export async function POST(req: NextRequest) {
         );
         return NextResponse.json({ ok: true, account_name });
       }
-      case "validate_openai": {
-        const error = await validateOpenAiKey(body.openai_key?.trim() ?? "");
+      case "validate_powerbrix": {
+        const error = await validatePowerBrixKey(body.powerbrix_key?.trim() ?? "");
         if (error) return NextResponse.json({ error }, { status: 400 });
         return NextResponse.json({ ok: true });
       }

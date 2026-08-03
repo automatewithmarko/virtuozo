@@ -2,14 +2,33 @@
 
 import CanvasCard from "@/components/studio/CanvasCard";
 import NewCanvasModal from "@/components/studio/NewCanvasModal";
+import PowerBrixKeyModal from "@/components/studio/PowerBrixKeyModal";
 import Button from "@/components/ui/Button";
+import { getPowerBrixKey } from "@/lib/browser-store";
 import { useStudio } from "@/lib/studio-store";
 import { Plus, Sparkles } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function StudioPage() {
   const { canvases, hydrated } = useStudio();
   const [modalOpen, setModalOpen] = useState(false);
+  const [keyModalOpen, setKeyModalOpen] = useState(false);
+  // undefined = not yet read (SSR), false = no key, true = key present.
+  const [hasKey, setHasKey] = useState<boolean | undefined>(undefined);
+
+  // localStorage is only available after mount; prompt immediately if no key.
+  useEffect(() => {
+    const present = Boolean(getPowerBrixKey());
+    setHasKey(present);
+    if (!present) setKeyModalOpen(true);
+  }, []);
+
+  // Canvas creation is gated on a PowerBrix key — without one, generation only
+  // returns a simulated preview, so send the user to add a key first.
+  const newCanvas = () => {
+    if (hasKey) setModalOpen(true);
+    else setKeyModalOpen(true);
+  };
 
   return (
     <div className="space-y-6">
@@ -22,7 +41,7 @@ export default function StudioPage() {
             Spin your best ads into new styles and new angles — on a canvas.
           </p>
         </div>
-        <Button onClick={() => setModalOpen(true)}>
+        <Button onClick={newCanvas}>
           <Plus className="size-4" />
           New canvas
         </Button>
@@ -37,7 +56,7 @@ export default function StudioPage() {
           <p className="mt-1 max-w-sm text-sm text-ink-muted">
             Start from one of your ads and drag out style or content variations.
           </p>
-          <Button className="mt-5" onClick={() => setModalOpen(true)}>
+          <Button className="mt-5" onClick={newCanvas}>
             <Plus className="size-4" />
             Create your first canvas
           </Button>
@@ -51,6 +70,11 @@ export default function StudioPage() {
       )}
 
       <NewCanvasModal open={modalOpen} onClose={() => setModalOpen(false)} />
+      <PowerBrixKeyModal
+        open={keyModalOpen}
+        onClose={() => setKeyModalOpen(false)}
+        onSaved={() => setHasKey(true)}
+      />
     </div>
   );
 }

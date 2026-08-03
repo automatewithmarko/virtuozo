@@ -110,7 +110,7 @@ function Editor({ canvas }: { canvas: StudioCanvas }) {
         );
         // Prompt Book blocks: defaults + the user's overrides (from the
         // browser). Generation runs on our stateless /api/studio/generate
-        // route, which uses the OpenAI key apiFetch forwards from the browser.
+        // route, which uses the PowerBrix key apiFetch forwards from the browser.
         const blocks = { ...DEFAULT_PROMPT_BLOCKS, ...getPromptOverrides() };
 
         const sourceCopy = {
@@ -242,7 +242,7 @@ function Editor({ canvas }: { canvas: StudioCanvas }) {
 
           if (!imageUrl)
             throw new Error(
-              "Generation ended without an image — OpenAI dropped the request. Hit Regenerate."
+              "Generation ended without an image — PowerBrix dropped the request. Hit Regenerate."
             );
           patch = {
             image_url: await compressToJpeg(imageUrl),

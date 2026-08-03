@@ -14,7 +14,7 @@
 **Targeting isn't the problem. Your ads are.**
 Andromeda already runs the targeting, bidding and delivery. You can't out-bid or out-target it, and it doesn't matter that you can't. The only lever left is the creative. Virtuozo is how you pull that lever: **generate as many ads as you need, feed them to Andromeda, and let it surface the winner.**
 
-Runs entirely in your browser. No accounts, no database, no sign-up. Bring your own Meta token and OpenAI key.
+Runs entirely in your browser. No accounts, no database, no sign-up. Bring your own Meta token and PowerBrix key.
 
 </div>
 
@@ -40,7 +40,7 @@ Virtuozo flips it: **stop guessing which ad wins, and make so many strong ads th
 
 ### 🎨 Studio, an infinite canvas for your ads
 
-Drop in your best ad and drag out variations, ten at a time. Two ways to vary, both powered by OpenAI:
+Drop in your best ad and drag out variations, ten at a time. Two ways to vary, both powered by PowerBrix:
 
 - **Style variations.** Same words, brand-new execution. Every quote, price and claim survives untouched; the layout, palette and type system are rebuilt.
 - **Content variations.** Same design system, brand-new message. A comparison, a review, an offer, a stat-led claim, each a sibling in the same campaign family.
@@ -89,7 +89,7 @@ Everything is configured in the app (**Settings**, or the connect banner on the 
 
 **Meta.** Paste a [Marketing API](https://developers.facebook.com/docs/marketing-apis/) access token (with `ads_read` + `ads_management`) and your numeric ad account id. A Graph API Explorer token works for a quick try; a Business Manager system-user token if you want one that doesn't expire.
 
-**OpenAI.** Paste an API key (`sk-…`) to turn on real generation in Studio. Without a key, Studio still runs with simulated variations so you can feel the flow.
+**PowerBrix.** Paste an API key (`mnt_…`) to turn on real generation in Studio — image and copy calls run through the [PowerBrix](https://api.powerbrix.ai) router (an OpenAI-compatible gateway). Without a key, Studio still runs with simulated variations so you can feel the flow.
 
 <br />
 
@@ -97,11 +97,11 @@ Everything is configured in the app (**Settings**, or the connect banner on the 
 
 Virtuozo is a Next.js app with **no backend of its own**:
 
-- **No database.** Your Meta connections, OpenAI key, Prompt Book overrides and every Studio canvas live in your browser's `localStorage`.
+- **No database.** Your Meta connections, PowerBrix key, Prompt Book overrides and every Studio canvas live in your browser's `localStorage`.
 - **No auth, no accounts.** Nothing to sign up for. It's your machine.
-- **Stateless API routes.** The bundled routes are thin proxies; your keys ride along in request headers and are used only to call Meta and OpenAI directly, then forgotten.
+- **Stateless API routes.** The bundled routes are thin proxies; your keys ride along in request headers and are used only to call Meta and PowerBrix directly, then forgotten.
 
-That means your credentials never leave your machine except to talk to Meta and OpenAI, and you can self-host it anywhere Next.js runs.
+That means your credentials never leave your machine except to talk to Meta and PowerBrix, and you can self-host it anywhere Next.js runs.
 
 <br />
 
@@ -110,7 +110,7 @@ That means your credentials never leave your machine except to talk to Meta and 
 - [Next.js 16](https://nextjs.org/) (App Router) + React 19 + TypeScript
 - [Tailwind CSS v4](https://tailwindcss.com/)
 - [React Flow](https://reactflow.dev/) for the Studio canvas
-- The [Meta Marketing API](https://developers.facebook.com/docs/marketing-apis/) and the [OpenAI API](https://platform.openai.com/) (image + text) for generation
+- The [Meta Marketing API](https://developers.facebook.com/docs/marketing-apis/) and the [PowerBrix API](https://api.powerbrix.ai) (OpenAI-compatible router, image + text) for generation
 
 <br />
 
@@ -121,8 +121,9 @@ Virtuozo needs no `.env` file, but you can override a couple of install-wide def
 | Variable | Default | What it does |
 | --- | --- | --- |
 | `META_API_VERSION` | `v23.0` | Meta Graph API version |
-| `OPENAI_IMAGE_MODEL` | `gpt-image-1` | Model used for image generation |
-| `OPENAI_TEXT_MODEL` | `gpt-4o` | Model used for ad copy |
+| `POWERBRIX_BASE_URL` | `https://api.powerbrix.ai` | PowerBrix router base URL |
+| `POWERBRIX_IMAGE_MODEL` | `openai/gpt-image-2` | Model used for image generation |
+| `POWERBRIX_TEXT_MODEL` | `openai/gpt-5` | Model used for ad copy |
 
 <br />
 

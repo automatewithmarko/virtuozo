@@ -23,7 +23,7 @@ export async function metaContext(): Promise<MetaContext | null> {
   return { token, adAccountId, pageId: h.get("x-meta-page")?.trim() || "" };
 }
 
-export async function getOpenAiKey(): Promise<string | null> {
+export async function getPowerBrixKey(): Promise<string | null> {
   const h = await headers();
-  return h.get("x-openai-key")?.trim() || null;
+  return h.get("x-powerbrix-key")?.trim() || null;
 }

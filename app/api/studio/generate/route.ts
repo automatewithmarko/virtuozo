@@ -1,13 +1,15 @@
-import { getOpenAiKey } from "@/lib/meta/user-store";
+import { getPowerBrixKey } from "@/lib/meta/user-store";
 import { NextRequest, NextResponse } from "next/server";
 
 /**
- * Studio AI generation. The user's OpenAI key arrives on the x-openai-key
- * header (from the browser); we edit the source ad with the image model and,
- * when asked, stream fresh copy with the text model. The response is NDJSON so
- * the canvas can show copy tokens live and the image as the final event.
+ * Studio AI generation. The user's PowerBrix key (mnt_…) arrives on the
+ * x-powerbrix-key header (from the browser); image + text generation go through
+ * the PowerBrix Super API — an OpenAI-compatible router — instead of calling
+ * OpenAI directly. We edit the source ad with the image model and, when asked,
+ * stream fresh copy with the text model. The response is NDJSON so the canvas
+ * can show copy tokens live and the image as the final event.
  *
- * Runs on the Node runtime so long OpenAI image edits aren't cut off — for a
+ * Runs on the Node runtime so long image edits aren't cut off — for a
  * self-hosted app there's no serverless timeout in the way.
  */
 
@@ -15,8 +17,12 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
-const IMAGE_MODEL = process.env.OPENAI_IMAGE_MODEL || "gpt-image-1";
-const TEXT_MODEL = process.env.OPENAI_TEXT_MODEL || "gpt-4o";
+// PowerBrix Super API — OpenAI-compatible router. api.powerbrix.ai and
+// platform.thementorprogram.xyz serve the same gateway.
+const POWERBRIX_BASE = process.env.POWERBRIX_BASE_URL || "https://api.powerbrix.ai";
+// Model ids are the gateway's namespaced slugs (provider/model).
+const IMAGE_MODEL = process.env.POWERBRIX_IMAGE_MODEL || "openai/gpt-image-2";
+const TEXT_MODEL = process.env.POWERBRIX_TEXT_MODEL || "openai/gpt-5";
 
 interface GenerateBody {
   image_png: string;
@@ -49,18 +55,16 @@ function matchingSize(width?: number, height?: number): string {
     : `${snap(1024 * ratio)}x${1024}`;
 }
 
-function dataUrlToBlob(dataUrl: string): Blob {
-  const [head, b64] = dataUrl.split(",");
-  const mime = head.match(/data:(.*?);/)?.[1] ?? "image/png";
-  const bin = Buffer.from(b64, "base64");
-  return new Blob([bin], { type: mime });
-}
-
-async function openAiMessage(res: Response): Promise<string> {
+async function apiErrorMessage(res: Response): Promise<string> {
   const body = await res.json().catch(() => null);
   return body?.error?.message ?? `HTTP ${res.status}`;
 }
 
+/**
+ * Edit the source image with a prompt via PowerBrix's /images/edits router;
+ * returns a PNG data URL. The endpoint accepts base64/data-URL images inline
+ * (JSON body) and swaps in the model's edit variant for us — no multipart.
+ */
 async function imageEdit(
   apiKey: string,
   imageDataUrl: string,
@@ -68,33 +72,34 @@ async function imageEdit(
   size: string,
   references: string[] = []
 ): Promise<string> {
-  const form = new FormData();
-  form.set("model", IMAGE_MODEL);
+  const body: Record<string, unknown> = { model: IMAGE_MODEL, size, n: 1 };
   if (references.length) {
-    form.append("image[]", dataUrlToBlob(imageDataUrl), "source.png");
-    references.forEach((ref, i) =>
-      form.append("image[]", dataUrlToBlob(ref), `reference-${i + 1}.jpg`)
-    );
-    prompt = `${prompt}\n\nThe FIRST input image is the ad creative to edit. The other ${references.length} input image(s) are reference images uploaded by the advertiser — use them as visual/content reference exactly as the instructions above direct, but the output must still be an edit of the first image.`;
+    // Multiple inputs: first the ad to edit, then the reference images.
+    body.images = [imageDataUrl, ...references];
+    body.prompt = `${prompt}\n\nThe FIRST input image is the ad creative to edit. The other ${references.length} input image(s) are reference images uploaded by the advertiser — use them as visual/content reference exactly as the instructions above direct, but the output must still be an edit of the first image.`;
   } else {
-    form.set("image", dataUrlToBlob(imageDataUrl), "source.png");
+    body.image = imageDataUrl;
+    body.prompt = prompt;
   }
-  form.set("prompt", prompt);
-  form.set("size", size);
-  form.set("n", "1");
 
-  const res = await fetch("https://api.openai.com/v1/images/edits", {
+  const res = await fetch(`${POWERBRIX_BASE}/api/v1/images/edits`, {
     method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}` },
-    body: form,
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
   });
   if (!res.ok) {
-    throw new Error(`OpenAI image generation failed: ${await openAiMessage(res)}`);
+    throw new Error(`PowerBrix image generation failed: ${await apiErrorMessage(res)}`);
   }
-  const data = (await res.json()) as { data: { b64_json?: string }[] };
-  const b64 = data.data?.[0]?.b64_json;
-  if (!b64) throw new Error("OpenAI returned no image — try again.");
-  return `data:image/png;base64,${b64}`;
+  const data = (await res.json()) as {
+    data: { b64_json?: string; url?: string }[];
+  };
+  const first = data.data?.[0];
+  if (first?.b64_json) return `data:image/png;base64,${first.b64_json}`;
+  if (first?.url) return first.url;
+  throw new Error("PowerBrix returned no image — try again.");
 }
 
 async function streamCopy(
@@ -103,7 +108,7 @@ async function streamCopy(
   user: string,
   onDelta: (rawJson: string) => void
 ): Promise<{ headline: string; primary_text: string }> {
-  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+  const res = await fetch(`${POWERBRIX_BASE}/api/v1/chat/completions`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${apiKey}`,
@@ -142,7 +147,7 @@ async function streamCopy(
     }),
   });
   if (!res.ok || !res.body) {
-    throw new Error(`OpenAI copywriting failed: ${await openAiMessage(res)}`);
+    throw new Error(`PowerBrix copywriting failed: ${await apiErrorMessage(res)}`);
   }
 
   const reader = res.body.getReader();
@@ -187,12 +192,12 @@ function extractPartialCopy(raw: string): {
 }
 
 export async function POST(req: NextRequest) {
-  const apiKey = await getOpenAiKey();
+  const apiKey = await getPowerBrixKey();
   if (!apiKey) {
     return fail(
       422,
       "NO_API_KEY",
-      "No OpenAI API key — add it in Settings → OpenAI."
+      "No PowerBrix API key — add it in Settings → PowerBrix."
     );
   }
 

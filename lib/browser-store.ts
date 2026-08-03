@@ -2,10 +2,11 @@
 
 /**
  * The open-source build has no server database and no accounts — everything a
- * user configures (Meta connections, the OpenAI key, Prompt Book overrides and
- * Studio canvases) lives in this browser's localStorage. The stateless API
+ * user configures (Meta connections, the PowerBrix key, Prompt Book overrides
+ * and Studio canvases) lives in this browser's localStorage. The stateless API
  * routes receive the credentials they need as request headers, injected by
- * apiFetch() below, so keys never leave the machine except to call Meta/OpenAI.
+ * apiFetch() below, so keys never leave the machine except to call the
+ * Meta and PowerBrix APIs.
  */
 
 export interface Connection {
@@ -20,7 +21,7 @@ const K = {
   connections: "virtuozo:connections",
   activeConn: "virtuozo:active-connection",
   activeAccount: "virtuozo:active-account",
-  openai: "virtuozo:openai-key",
+  powerbrix: "virtuozo:powerbrix-key",
   prompts: "virtuozo:prompt-overrides",
 } as const;
 
@@ -61,8 +62,8 @@ export function activeConnection(): Connection | undefined {
 export const getActiveAccountId = () => read<string | null>(K.activeAccount, null);
 export const setActiveAccountId = (id: string | null) => write(K.activeAccount, id);
 
-export const getOpenAiKey = () => read<string>(K.openai, "");
-export const setOpenAiKey = (key: string) => write(K.openai, key);
+export const getPowerBrixKey = () => read<string>(K.powerbrix, "");
+export const setPowerBrixKey = (key: string) => write(K.powerbrix, key);
 
 export const getPromptOverrides = () =>
   read<Record<string, string>>(K.prompts, {});
@@ -84,8 +85,8 @@ export function credentialHeaders(): Record<string, string> {
   if (conn?.token) headers["x-meta-token"] = conn.token;
   if (account) headers["x-meta-account"] = account;
   if (conn?.page_id) headers["x-meta-page"] = conn.page_id;
-  const key = getOpenAiKey();
-  if (key) headers["x-openai-key"] = key;
+  const key = getPowerBrixKey();
+  if (key) headers["x-powerbrix-key"] = key;
   return headers;
 }
 
